@@ -173,6 +173,7 @@ class HKVStorage
         $db        = $this->db();
         $tableName = $this->getTableName();
         $data      = $dataItem->toArray();
+        $isNew     = !$dataItem->hasId();
 
         if (!$time) {
             $time = time();
@@ -180,13 +181,15 @@ class HKVStorage
 
         $data["creationDate"] = $time;
 
-        if ($dataItem->isArray() || $dataItem->isObject()) {
+        if (($dataItem->isArray() || $dataItem->isObject())
+            && (!$isNew || $data["value"] !== null)
+        ) {
             $data["value"] = static::encodeValue($data["value"]);
         }
 
         unset($data["children"]);
 
-        if ($dataItem->hasId()) {
+        if ($isNew) {
             $db->update($tableName, $data, $dataItem->getId());
         } else {
             try {
@@ -217,34 +220,34 @@ class HKVStorage
      */
     public function saveData($key, $value, $scope = null, $parentId = null, $userId = null)
     {
-        $dataItem = new HKV();
-        $isArray  = is_array($value);
-        $dataItem->setKey($key);
-        $dataItem->setParentId($parentId);
-        $dataItem->setScope($scope);
-        $type = gettype($value);
-        $dataItem->setType($type);
-        $dataItem->setUserId($userId);
+        $hkv     = new HKV();
+        $type    = gettype($value);
+        $isArray = is_array($value);
+        $hkv->setKey($key);
+        $hkv->setParentId($parentId);
+        $hkv->setScope($scope);
+        $hkv->setType($type);
+        $hkv->setUserId($userId);
 
         if (!$isArray) {
-            $dataItem->setValue($value);
+            $hkv->setValue($value);
         }
         if ($type == "object") {
-            $dataItem->setType(get_class($value));
+            $hkv->setType(get_class($value));
         }
 
-        $this->save($dataItem);
+        $this->save($hkv);
 
         if ($isArray) {
-            $childParentId = $dataItem->getId();
+            $childParentId = $hkv->getId();
             $children      = array();
             foreach ($value as $subKey => $item) {
                 $children[] = $this->saveData($subKey, $item, $scope, $childParentId, $userId);
             }
-            $dataItem->setChildren($children);
+            $hkv->setChildren($children);
         }
 
-        return $dataItem;
+        return $hkv;
     }
 
     /**
