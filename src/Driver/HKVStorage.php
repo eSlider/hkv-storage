@@ -189,7 +189,7 @@ class HKVStorage
 
         unset($data["children"]);
 
-        if ($isNew) {
+        if (!$isNew) {
             $db->update($tableName, $data, $dataItem->getId());
         } else {
             try {
