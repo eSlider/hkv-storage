@@ -1,0 +1,29 @@
+@startuml
+
+!define SEQUENCE (U,#fff000) User
+!define TABLE (T,#FFAAAA) DB Table
+
+!definelong display(viewName)
+"{{
+salt
+    ##viewName
+}}
+" as viewName##Container
+!enddefinelong
+
+!definelong echo(viewName)
+"{{
+salt
+    ##viewName
+}}
+"
+!enddefinelong
+
+!definelong print(viewName)
+{{
+salt
+    ##viewName
+}}
+!enddefinelong
+
+@enduml
