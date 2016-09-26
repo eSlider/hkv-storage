@@ -39,7 +39,7 @@ class HKVStorage
     {
         $emptyDatabase   = !file_exists($path);
         $this->db        = new SqliteExtended($path);
-        $this->tableName = $tableName;
+         $this->tableName = $this->setTableName($tableName);
 
         if ($emptyDatabase) {
             $this->createDbStructure();
@@ -387,5 +387,17 @@ class HKVStorage
         }
 
         return implode(' ', $sql);
+    }
+
+    /**
+     * Set table name
+     *
+     * @param string $tableName
+     * @return self
+     */
+    public function setTableName($tableName)
+    {
+        $this->tableName = $tableName;
+        return $this;
     }
 }
