@@ -117,43 +117,80 @@ class BaseEntity
      */
     public function __toString()
     {
-        $className  = get_class($this);
-        $methods    = get_class_methods($className);
-        $vars       = array_keys(get_class_vars($className));
-        $reflection = new \ReflectionClass($className);
-        $data       = array();
-
-        foreach ($vars as $key) {
-            $value = $this->$key;
-            $data[ $key ] = $value;
-        }
-
-        foreach ($methods as $methodName) {
-            if (strpos('get', $methodName) !== 0) {
-                continue;
-            }
-            $key          = lcfirst(substr($methodName, 3));
-            $vars[ $key ] = $this->{$methodName}();
-        }
-
-        $data = $this->objectToString($data);
-
-        return json_encode($data);
+        return json_encode(
+            $this->arrayToString(
+                $this->toArray()
+            )
+        );
     }
 
     /**
      * @param $data
      * @return mixed
      */
-    protected function objectToString($data)
+    public function arrayToString($data)
     {
         foreach ($data as $k => $value) {
             if ($value instanceof BaseEntity) {
                 $data[ $k ] = (string)$value;
             } elseif (is_array($value)) {
-                $value      = $this->objectToString($value);
+                $value      = $this->arrayToString($value);
                 $data[ $k ] = $value;
 
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Export data
+     *
+     * @return mixed
+     */
+    public function toArray()
+    {
+        static $className, $methods, $vars;
+
+        if (!$className) {
+            $className = get_class($this);
+            $methods   = get_class_methods($className);
+            $vars      = array_keys(get_class_vars($className));
+            foreach ($methods as $key => $methodName) {
+                if (strpos('get', $methodName) !== 0) {
+                    unset($methods[ $key ]);
+                }
+            }
+        }
+
+        $data = array();
+        foreach ($vars as $key) {
+            $value        = $this->$key;
+            $data[ $key ] = $value;
+        }
+
+        foreach ($methods as $methodName) {
+            $key          = lcfirst(substr($methodName, 3));
+            $vars[ $key ] = $this->{$methodName}();
+        }
+
+        return static::denormalize($data);
+    }
+
+    /**
+     * Simplify array.
+     * Convert typed data to array.
+     *
+     * @param array $data
+     * @return mixed
+     */
+    public static function denormalize(array $data)
+    {
+        /** @var BaseEntity $item */
+        foreach ($data as $k => $item) {
+            if ($item instanceof BaseEntity) {
+                $data[ $k ] = $item->toArray();
+            } elseif (is_array($item)) {
+                $data[ $k ] = static::denormalize($item);
             }
         }
         return $data;
