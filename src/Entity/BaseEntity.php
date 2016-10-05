@@ -111,4 +111,51 @@ class BaseEntity
         preg_match($reg, $str, $annotations);
         return $annotations;
     }
+
+    /**
+     * Convert to string
+     */
+    public function __toString()
+    {
+        $className  = get_class($this);
+        $methods    = get_class_methods($className);
+        $vars       = array_keys(get_class_vars($className));
+        $reflection = new \ReflectionClass($className);
+        $data       = array();
+
+        foreach ($vars as $key) {
+            $value = $this->$key;
+            $data[ $key ] = $value;
+        }
+
+        foreach ($methods as $methodName) {
+            if (strpos('get', $methodName) !== 0) {
+                continue;
+            }
+            $key          = lcfirst(substr($methodName, 3));
+            $vars[ $key ] = $this->{$methodName}();
+        }
+
+        $data = $this->objectToString($data);
+
+        return json_encode($data);
+    }
+
+    /**
+     * @param $data
+     * @return mixed
+     */
+    protected function objectToString($data)
+    {
+        foreach ($data as $k => $value) {
+            if ($value instanceof BaseEntity) {
+                $data[ $k ] = (string)$value;
+            } elseif (is_array($value)) {
+                $value      = $this->objectToString($value);
+                $data[ $k ] = $value;
+
+            }
+        }
+        return $data;
+    }
 }
