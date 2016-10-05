@@ -39,7 +39,7 @@ class HKVStorage
     {
         $emptyDatabase   = !file_exists($path);
         $this->db        = new SqliteExtended($path);
-         $this->tableName = $this->setTableName($tableName);
+        $this->setTableName($tableName);
 
         if ($emptyDatabase) {
             $this->createDbStructure();
@@ -87,7 +87,12 @@ class HKVStorage
      */
     public function get(HKVSearchFilter $filter)
     {
-        $db       = $this->db();
+        $db = $this->db();
+
+        if (!$db->hasTable($this->tableName)) {
+            return new HKV();
+        }
+
         $query    = $this->createQuery($filter);
         $dataItem = new HKV($db->fetchRow($query));
 
