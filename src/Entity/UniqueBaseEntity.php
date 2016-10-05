@@ -4,7 +4,7 @@ namespace Eslider\Entity;
 /**
  * Class BaseEntity
  *
- * @author  Mohamed Tahrioui <mmt@wheregroup.com>
+ * @author  Mohamed Tahrioui <mohamed.tahrioui@wheregroup.com>
  */
 class UniqueBaseEntity extends BaseEntity
 {
