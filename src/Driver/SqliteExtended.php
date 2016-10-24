@@ -80,7 +80,8 @@ class SqliteExtended extends \SQLite3
      */
     public function fetchRow($sql, $debug = false)
     {
-        return current($this->queryAndFetch($sql, $debug));
+        $result = current($this->queryAndFetch($sql, $debug));
+        return $result ? $result : array();
     }
 
     /**
