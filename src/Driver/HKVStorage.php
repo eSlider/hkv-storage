@@ -62,13 +62,15 @@ class HKVStorage
      * @param int    $id            HKV id
      * @param bool   $fetchChildren Get children flag
      * @param string $scope
+     * @param null   $userId
      * @return HKV
      */
-    public function getById($id, $fetchChildren = true, $scope = null)
+    public function getById($id, $fetchChildren = true, $scope = null, $userId = null)
     {
         $filter = new HKVSearchFilter();
         $filter->setId($id);
         $filter->setScope($scope);
+        $filter->setUserId($userId);
 
         if ($fetchChildren) {
             $filter->setFetchMethod(HKVSearchFilter::FETCH_ONE_AND_CHILDREN);
@@ -101,7 +103,7 @@ class HKVStorage
         }
 
         if ($filter->shouldFetchChildren()) {
-            $children = $this->getChildren($dataItem->getId(), true, $filter->getScope());
+            $children = $this->getChildren($dataItem->getId(), true, $filter->getScope(), $filter->getUserId());
             $dataItem->setChildren($children);
         }
         return $dataItem;
@@ -113,9 +115,10 @@ class HKVStorage
      * @param      $id int
      * @param bool $fetchChildren
      * @param null $scope
-     * @return HKV[]
+     * @param null $userId
+     * @return \Eslider\Entity\HKV[]
      */
-    public function getChildren($id, $fetchChildren = true, $scope = null)
+    public function getChildren($id, $fetchChildren = true, $scope = null, $userId = null)
     {
         $db       = $this->db();
         $children = array();
@@ -123,9 +126,11 @@ class HKVStorage
 
         $filter->setParentId($id);
         $filter->setFields(array(self::ID_FIELD));
+        $filter->setUserId($userId);
 
-        foreach ($db->queryAndFetch($this->createQuery($filter)) as $row) {
-            $children[] = $this->getById($row[ self::ID_FIELD ], $fetchChildren, $scope);
+        $sql = $this->createQuery($filter);
+        foreach ($db->queryAndFetch($sql) as $row) {
+            $children[] = $this->getById($row[ self::ID_FIELD ], $fetchChildren, $scope, $userId);
         }
 
         return $children;
@@ -290,8 +295,8 @@ class HKVStorage
         $filter->setScope($scope);
         $filter->setUserId($userId);
         $hkv  = $this->get($filter);
-        $data = static::denormalize($hkv);
 
+        $data = static::denormalize($hkv);
         return $data;
     }
 
@@ -367,6 +372,10 @@ class HKVStorage
             $where[] = static::ID_FIELD . '=' . intval($filter->getId());
         } elseif ($filter->getKey()) {
             $where[] = $quotedKeyName . ' LIKE ' . $db::escapeValue($filter->getKey());
+        }
+
+        if ($filter->getUserId()) {
+            $where[] = $db->quote('userId') . ' LIKE ' . $db::escapeValue($filter->getUserId());
         }
 
         if ($filter->getParentId()) {
