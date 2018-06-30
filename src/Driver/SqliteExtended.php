@@ -183,13 +183,14 @@ class SqliteExtended extends \SQLite3
      *
      * @return array
      */
-    public function addColumn($tableName, $columnName)
+    public function addColumn($tableName, $columnName, $type = '')
     {
         return $this->query(
             "ALTER TABLE " .
             $this->quote($tableName) .
             " ADD COLUMN " .
-            $this->quote($columnName));
+            $this->quote($columnName)).
+            ' ' . $type;
     }
 
 
