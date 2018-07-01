@@ -48,12 +48,13 @@ class SqliteExtended extends \SQLite3
      * @param string $sql
      * @return array
      */
-    public function queryAndFetch($sql)
+    public function queryAndFetch($sql, $callback = null)
     {
-        $result    = array();
-        $statement = $this->query($sql);
+        $result     = array();
+        $statement  = $this->query($sql);
+        $isCallable = is_callable($callback);
         while ($row = $statement->fetchArray(SQLITE3_ASSOC)) {
-            $result[] = $row;
+            $result[] = $isCallable ? $callback($row) : $row;
         }
         return $result;
     }
