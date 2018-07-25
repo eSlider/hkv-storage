@@ -59,11 +59,15 @@ class BaseEntity
             $varName = lcfirst($this->removeNameSpaceFromVariableName($k));
 
             if (in_array($varName, $vars)) {
-                $docComment = $reflection->getProperty($varName)->getDocComment();
-                if (preg_match('/@var\s+([A-Z\\\]\S+)/s', $docComment, $annotations)) {
-                    $varClassName = $annotations[1];
-                    if (class_exists($varClassName)) {
-                        $v = new $varClassName($v);
+                if (is_array($v) && isset($v['class'])) {
+                    $v = new $v['class']($v);
+                } else {
+                    $docComment = $reflection->getProperty($varName)->getDocComment();
+                    if (preg_match('/@var\s+([A-Z\\\]\S+)/s', $docComment, $annotations)) {
+                        $varClassName = $annotations[1];
+                        if (class_exists($varClassName)) {
+                            $v = new $varClassName($v);
+                        }
                     }
                 }
                 $this->{$varName} = $v;
