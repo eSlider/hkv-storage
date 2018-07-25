@@ -34,8 +34,8 @@ class BaseEntity
 
         if (!$className) {
             $className  = get_class($this);
-            $methods    = get_class_methods($className);
-            $vars       = array_keys(get_class_vars($className));
+            $methods    = get_class_methods($this);
+            $vars       = array_keys(get_object_vars($this));
             $reflection = new \ReflectionClass($className);
         }
 
@@ -57,9 +57,10 @@ class BaseEntity
             }
 
             $varName = lcfirst($this->removeNameSpaceFromVariableName($k));
+
             if (in_array($varName, $vars)) {
                 $docComment = $reflection->getProperty($varName)->getDocComment();
-                if (preg_match('/@var ([\\\]?[A-Z]\S+)/s', $docComment, $annotations)) {
+                if (preg_match('/@var\s+([A-Z\\\]\S+)/s', $docComment, $annotations)) {
                     $varClassName = $annotations[1];
                     if (class_exists($varClassName)) {
                         $v = new $varClassName($v);
@@ -72,7 +73,7 @@ class BaseEntity
             $varName .= "s";
             if (in_array($varName, $vars)) {
                 $docComment = $reflection->getProperty($varName)->getDocComment();
-                if ($annotations = self::parse('/@var\s+([\\\]?[A-Z]\S+)(\[\])/s', $docComment)) {
+                if ($annotations = self::parse('/@var\s+([\\\]?[A-Z\\\]\S+)(\[\])/s', $docComment)) {
                     $varClassName = $annotations[1];
                     if (class_exists($varClassName)) {
                         $items     = array();
