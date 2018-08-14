@@ -300,9 +300,9 @@ class SqliteExtended extends \SQLite3
 
         return $this->query('UPDATE '
             . $this->quote($tableName)
-            . 'SET  ('
-            . implode(' , ', $values)
-            . ') WHERE ' . $this->quote($idColumn) . "=" . static::escapeValue($idValue));
+            . ' SET '
+            . implode(', ', $values)
+            . ' WHERE ' . $this->quote($idColumn) . "=" . static::escapeValue($idValue));
     }
 
 
